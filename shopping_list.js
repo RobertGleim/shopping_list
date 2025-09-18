@@ -50,6 +50,41 @@ function showSelectedList(selectedId) {
   });
 }
 
+
+
+function saveAllListsToLocalStorage() {
+  document.querySelectorAll('.shopping_list ul').forEach(ul => {
+    const items = [];
+    ul.querySelectorAll('li').forEach(li => {
+      const text = li.querySelector('span') ? li.querySelector('span').textContent : li.textContent;
+      items.push({
+        text,
+        checked: li.querySelector('.item-checkbox') ? li.querySelector('.item-checkbox').checked : false
+      });
+    });
+    localStorage.setItem('shoppingList_' + ul.id, JSON.stringify(items));
+  });
+}
+
+function loadAllListsFromLocalStorage() {
+  document.querySelectorAll('.shopping_list ul').forEach(ul => {
+    ul.innerHTML = '';
+    const items = JSON.parse(localStorage.getItem('shoppingList_' + ul.id) || '[]');
+    items.forEach(item => {
+      const li = document.createElement('li');
+      li.innerHTML = `<div class="item-row"><input type="checkbox" class="item-checkbox" ${item.checked ? 'checked' : ''} /><span>${item.text}</span></div><button class="complete-btn" style="visibility:${item.checked ? 'visible' : 'hidden'};">Complete</button>`;
+      ul.appendChild(li);
+    });
+  });
+}
+
+// Load lists on page load
+window.addEventListener('DOMContentLoaded', function() {
+  loadAllListsFromLocalStorage();
+  selectList.value = 'list1';
+  showSelectedList('list1');
+});
+
 selectList.addEventListener("change", function () {
   showSelectedList(this.value);
 });
@@ -129,13 +164,47 @@ addItemButton.addEventListener("click", function () {
                         // Recursively move to completed list
                         const completedLi = document.createElement("li");
                         completedLi.innerHTML = `<span>${itemText}</span> <button class="restore-btn">Restore</button> <button class="delete-btn">Delete</button>`;
+                        completedLi.innerHTML = `<div class="item-row"><input type="checkbox" class="item-checkbox" disabled /><span>${itemText}</span></div><button class="restore-btn">Restore</button> <button class="delete-btn">Delete</button>`;
+                        completedLi.innerHTML = `<div class=\"item-row\"><span>${itemText}</span></div><button class=\"restore-btn\">Restore</button> <button class=\"delete-btn\">Delete</button>`;
                         completedList.appendChild(completedLi);
                         newLi.remove();
-                        // Add listeners again
+
                         const restoreBtn = completedLi.querySelector(".restore-btn");
                         if (restoreBtn) {
                           restoreBtn.addEventListener("click", function () {
-                            // ...same logic as above...
+                            const selectedListId = selectList.value;
+                            const shoppingUl = document.getElementById(selectedListId);
+                            if (shoppingUl) {
+                              const newLi = document.createElement("li");
+                              newLi.innerHTML = `<input type="checkbox" class="item-checkbox" /> ${itemText} <button class="complete-btn" style="visibility:hidden;">Complete</button>`;
+                              shoppingUl.appendChild(newLi);
+
+                              const checkbox = newLi.querySelector(".item-checkbox");
+                              const completeBtn = newLi.querySelector(".complete-btn");
+                              checkbox.addEventListener("change", function () {
+                                completeBtn.style.visibility = checkbox.checked ? "visible" : "hidden";
+                              });
+                              completeBtn.addEventListener("click", function () {
+                                // Recursively move to completed list
+                                const completedLi = document.createElement("li");
+                                completedLi.innerHTML = `<span>${itemText}</span> <button class="restore-btn">Restore</button> <button class="delete-btn">Delete</button>`;
+                                completedList.appendChild(completedLi);
+                                newLi.remove();
+                                // Add listeners again
+                                const restoreBtn = completedLi.querySelector(".restore-btn");
+                                if (restoreBtn) {
+                                  restoreBtn.addEventListener("click", function () {
+                                    // ...same logic as above...
+                                  });
+                                }
+                                const deleteBtn = completedLi.querySelector(".delete-btn");
+                                if (deleteBtn) {
+                                  deleteBtn.addEventListener("click", function () {
+                                    completedLi.remove();
+                                  });
+                                }
+                              });
+                            }
                           });
                         }
                         const deleteBtn = completedLi.querySelector(".delete-btn");
@@ -184,4 +253,27 @@ if (removeCheckedBtn) {
   });
 }
 
-showSelectedList(selectList.value);
+// Save lists after every change
+addItemButton.addEventListener("click", function () {
+  saveAllListsToLocalStorage();
+});
+
+// Save after removing checked items
+if (removeCheckedBtn) {
+  removeCheckedBtn.addEventListener("click", function () {
+    saveAllListsToLocalStorage();
+  });
+}
+
+// Save after checking/unchecking all
+if (checkAllBtn) {
+  checkAllBtn.addEventListener('click', function() {
+    saveAllListsToLocalStorage();
+  });
+}
+if (uncheckAllBtn) {
+  uncheckAllBtn.addEventListener('click', function() {
+    saveAllListsToLocalStorage();
+  });
+}
+
