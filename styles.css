@@ -1,4 +1,8 @@
-
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 body {
   font-weight: bold;
@@ -339,177 +343,41 @@ ul {
   padding-left: 0;
 }
 
-/* === Responsive Design: Media Queries === */
-@media only screen and (max-width: 800px) {
-.completed_list li .restore-btn,
-.completed_list li .delete-btn {
-  display: flex;
 
-}
-.main_container, .completed_list, .shopping_container, .completed {
-  max-width: 900px;
-  width: 100%;
-  padding: 0 2vw;
-}
-.shopping_list ul, .completed_list ul {
-  grid-template-columns: repeat(2, 1fr);
-}
-/* Keep original sizes for buttons and input fields at all breakpoints */
-.form-input {
-  width: 300px;
-  font-size: 1rem;
-}
-.add-item {
-  width: 90px;
-  font-size: 1rem;
-}
-.remove-checked {
-  width: 160px;
-  font-size: 0.75rem;
-}
-.check-all, .uncheck-all {
-  width: 120px;
-  font-size: 1rem;
-}
-.delete-all {
-  width: 160px;
-  font-size: 1rem;
-}
-.completed_list li .restore-btn,
-.completed_list li .delete-btn {
-  max-width: 120px;
-  font-size: 1rem;
-}
-.shopping_list li,
-.completed_list li {
-  width: 300px;
-  margin-left: auto;
-  margin-right: auto;
-  box-sizing: border-box;
-  word-break: break-word;
-  white-space: normal;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+@media (max-width: 800px) {
+  .main_container, .completed_list, .shopping_container, .completed {
+    max-width: 900px;
+  }
+  .shopping_list ul, .completed_list ul {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .form-input, .shopping_list li, .completed_list li {
+    width: 300px;
+    font-size: 1rem;
+  }
+  .list-counts, .completed-list-counts {
+    font-size: 1rem;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+    word-break: break-word;
+  }
 }
 
-@media only screen and (max-width: 600px) {
-.completed_list li .restore-btn,
-.completed_list li .delete-btn {
- 
-  font-size: 1rem;
-    display: flex;
-    justify-content: center;
-    
-}
-.main_container, .completed_list, .shopping_container, .completed {
-  max-width: 600px;
-  width: 100%;
-  padding: 0 2vw;
-}
-.shopping_list ul, .completed_list ul {
-  grid-template-columns: 1fr;
-}
-/* Keep original sizes for buttons and input fields at all breakpoints */
-.form-input {
-  width: 300px;
-  font-size: 1rem;
-}
-.add-item {
-  width: 90px;
-  font-size: 1rem;
-}
-.remove-checked {
-  width: 160px;
-  font-size: 0.75rem;
-}
-.check-all, .uncheck-all {
-  width: 120px;
-  font-size: 1rem;
-}
-.delete-all {
-  width: 160px;
-  font-size: 1rem;
-}
-.completed_list li .restore-btn,
-.completed_list li .delete-btn {
-  max-width: 120px;
-  font-size: 1rem;
-}
-.shopping_list li,
-.completed_list li {
-  width: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.button-row {
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
-  justify-content: center;
-}
-
-}
-
-@media only screen and (max-width: 600px) {
-.completed_list li .restore-btn,
-.completed_list li .delete-btn {
-  max-width: 120px;
-  font-size: 1rem;
-    display: flex;
-}
-body {
-  font-size: 0.95rem;
-}
-h1 {
-  font-size: 1.5rem;
-  padding: 10px 5px;
-}
-.main_container, .completed_list, .shopping_container, .completed {
-  max-width: 98vw;
-  width: 100%;
-  padding: 0 2vw;
-}
-
-.form-input {
-  width: 300px;
-  font-size: 1rem;
-}
-.add-item {
-  width: 90px;
-  font-size: 1rem;
-}
-.remove-checked {
-  width: 160px;
-  font-size: 0.75rem;
-}
-.check-all, .uncheck-all {
-  width: 120px;
-  font-size: 1rem;
-}
-.delete-all {
-  width: 160px;
-  font-size: 1rem;
-}
-.completed_list li .restore-btn,
-.completed_list li .delete-btn {
-  max-width: 120px;
-  font-size: 1rem;
-}
-.shopping_list li,
-.completed_list li {
-  width: 300px;
-  margin-left: auto;
-  margin-right: auto;
-  box-sizing: border-box;
-  word-break: break-word;
-  white-space: normal;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+@media (max-width: 600px) {
+  .main_container, .completed_list, .shopping_container, .completed {
+    max-width: 98vw;
+  }
+  .shopping_list ul, .completed_list ul {
+    grid-template-columns: 1fr;
+  }
+  h1 { font-size: 1.5rem; padding: 10px 5px; }
+  .button-row { flex-direction: column; gap: 10px; }
+  .list-counts, .completed-list-counts {
+    font-size: 0.9rem;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 8px;
+    word-break: break-word;
+  }
 }

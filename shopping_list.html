@@ -20,7 +20,14 @@
         </select>
       </div>
     </div>
-    
+    <div class="list-counts">
+      <span>List 1: <span id="count-list1">0</span></span> |
+      <span>List 2: <span id="count-list2">0</span></span> |
+      <span>List 3: <span id="count-list3">0</span></span> |
+      <span>List 4: <span id="count-list4">0</span></span> |
+      <span>List 5: <span id="count-list5">0</span></span> |
+      <strong>Total: <span id="item-count">0</span></strong>
+    </div>
     <div class="main_container">
       <div class="shopping_container">
         <input
@@ -39,25 +46,35 @@
         <ul id="list4" class="shopping-list-ul" style="display: none"></ul>
         <ul id="list5" class="shopping-list-ul" style="display: none"></ul>
       </div>
-
-      
-
   <div class="button-row">
   <button class="remove-checked">Remove Checked Items</button>
   <button class="check-all">Check All</button>
   <button class="uncheck-all">Uncheck All</button>
       </div>
       <div class="completed">
-        <h2>---------- Completed Items ----------</h2>
+        <h2>---------- Completed Items ----------
+          <br>
+          <br>
+          <br>
+        </h2>
       </div>
+      <div class="completed-list-counts">
+  <span>Completed List 1: <span id="completed-count-list1">0</span></span> |
+  <span>Completed List 2: <span id="completed-count-list2">0</span></span> |
+  <span>Completed List 3: <span id="completed-count-list3">0</span></span> |
+  <span>Completed List 4: <span id="completed-count-list4">0</span></span> |
+  <span>Completed List 5: <span id="completed-count-list5">0</span></span> |
+  <strong>Total: <span id="completed-item-count">0</span></strong>
+</div>
       <div class="completed_list">
-        <ul id="completed-list">
-          
-        </ul>
+        <ul id="completed-list1"></ul>
+        <ul id="completed-list2"></ul>
+        <ul id="completed-list3"></ul>
+        <ul id="completed-list4"></ul>
+        <ul id="completed-list5"></ul>
   <button class="delete-all">Delete All</button>
       </div>
     </div>
-
     <script src="shopping_list.js"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"

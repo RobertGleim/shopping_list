@@ -1,279 +1,138 @@
-// Delete All button logic
-const deleteAllBtn = document.querySelector('.delete-all');
-const completedListUl = document.getElementById('completed-list');
-if (deleteAllBtn && completedListUl) {
-  deleteAllBtn.addEventListener('click', function() {
-    completedListUl.innerHTML = '';
-  });
-}
-// Uncheck All button logic
-const uncheckAllBtn = document.querySelector('.uncheck-all');
-if (uncheckAllBtn) {
-  uncheckAllBtn.addEventListener('click', function() {
-    // Only uncheck items in the currently visible shopping list
-    document.querySelectorAll('.shopping_list ul').forEach(ul => {
-      if (ul.style.display !== 'none') {
-        ul.querySelectorAll('.item-checkbox').forEach(checkbox => {
-          checkbox.checked = false;
-          checkbox.dispatchEvent(new Event('change'));
-        });
-      }
-    });
-  });
-}
-// Check All button logic
-const checkAllBtn = document.querySelector('.check-all');
-if (checkAllBtn) {
-  checkAllBtn.addEventListener('click', function() {
-    // Only check items in the currently visible shopping list
-    document.querySelectorAll('.shopping_list ul').forEach(ul => {
-      if (ul.style.display !== 'none') {
-        ul.querySelectorAll('.item-checkbox').forEach(checkbox => {
-          checkbox.checked = true;
-          checkbox.dispatchEvent(new Event('change'));
-        });
-      }
-    });
-  });
-}
-const shoppingList = document.querySelector(".shopping_list ul");
-const completedList = document.querySelector(".completed_list ul");
-const itemInput = document.querySelector(
-  ".shopping_container input.form-input"
-);
-const addItemButton = document.querySelector(".add-item");
-const selectList = document.querySelector(".select-list select");
-
-function showSelectedList(selectedId) {
-  document.querySelectorAll(".shopping_list ul").forEach((ul) => {
-    ul.style.display = ul.id === selectedId ? "" : "none";
-  });
+function updateItemCount() {
+  let total = 0, completedTotal = 0;
+  for (let i = 1; i <= 5; i++) {
+    const ul = document.getElementById(`list${i}`);
+    const cul = document.getElementById(`completed-list${i}`);
+    const count = ul.children.length, ccount = cul.children.length;
+    document.getElementById(`count-list${i}`).textContent = count;
+    document.getElementById(`completed-count-list${i}`).textContent = ccount;
+    total += count; completedTotal += ccount;
+  }
+  document.getElementById('item-count').textContent = total;
+  document.getElementById('completed-item-count').textContent = completedTotal;
 }
 
+function clearCompletedLists() {
+  for (let i = 1; i <= 5; i++) document.getElementById(`completed-list${i}`).innerHTML = '';
+  updateItemCount();
+}
 
+function checkOrUncheckAll(check) {
+  const ul = document.querySelector('.shopping_list ul[style=""]');
+  if (ul) ul.querySelectorAll('.item-checkbox').forEach(cb => { cb.checked = check; cb.dispatchEvent(new Event('change')); });
+  updateItemCount();
+}
+
+function showSelectedList(id) {
+  for (let i = 1; i <= 5; i++) document.getElementById(`list${i}`).style.display = (id === `list${i}`) ? "" : "none";
+}
 
 function saveAllListsToLocalStorage() {
-  document.querySelectorAll('.shopping_list ul').forEach(ul => {
-    const items = [];
-    ul.querySelectorAll('li').forEach(li => {
-      const text = li.querySelector('span') ? li.querySelector('span').textContent : li.textContent;
-      items.push({
-        text,
-        checked: li.querySelector('.item-checkbox') ? li.querySelector('.item-checkbox').checked : false
-      });
-    });
-    localStorage.setItem('shoppingList_' + ul.id, JSON.stringify(items));
-  });
+  for (let i = 1; i <= 5; i++) {
+    const ul = document.getElementById(`list${i}`);
+    localStorage.setItem('shoppingList_' + ul.id, JSON.stringify(
+      Array.from(ul.children).map(li => ({
+        text: li.querySelector('span').textContent,
+        checked: li.querySelector('.item-checkbox').checked
+      }))
+    ));
+  }
 }
 
 function loadAllListsFromLocalStorage() {
-  document.querySelectorAll('.shopping_list ul').forEach(ul => {
+  for (let i = 1; i <= 5; i++) {
+    const ul = document.getElementById(`list${i}`);
     ul.innerHTML = '';
-    const items = JSON.parse(localStorage.getItem('shoppingList_' + ul.id) || '[]');
-    items.forEach(item => {
-      const li = document.createElement('li');
-      li.innerHTML = `<div class="item-row"><input type="checkbox" class="item-checkbox" ${item.checked ? 'checked' : ''} /><span>${item.text}</span></div><button class="complete-btn" style="visibility:${item.checked ? 'visible' : 'hidden'};">Complete</button>`;
-      ul.appendChild(li);
-    });
-  });
+    (JSON.parse(localStorage.getItem('shoppingList_' + ul.id) || '[]'))
+      .forEach(item => ul.appendChild(createShoppingLi(item.text, item.checked, ul.id)));
+  }
 }
 
-// Load lists on page load
-window.addEventListener('DOMContentLoaded', function() {
+function createShoppingLi(text, checked, listId) {
+  const li = document.createElement('li');
+  li.innerHTML = `<div class="item-row"><input type="checkbox" class="item-checkbox" ${checked ? 'checked' : ''} /><span>${text}</span></div><button class="complete-btn" style="visibility:${checked ? 'visible' : 'hidden'};">Complete</button>`;
+  setupItemEvents(li, listId);
+  return li;
+}
+
+function addItem() {
+  const itemInput = document.getElementById("new-item");
+  const selectList = document.querySelector(".select-list select");
+  const ul = document.getElementById(selectList.value);
+  if (itemInput.value.trim()) {
+    ul.appendChild(createShoppingLi(itemInput.value.trim(), false, ul.id));
+    itemInput.value = "";
+    updateItemCount();
+    saveAllListsToLocalStorage();
+  }
+}
+
+function setupItemEvents(li, listId) {
+  const cb = li.querySelector(".item-checkbox"), btn = li.querySelector(".complete-btn");
+  cb.addEventListener("change", () => { btn.style.visibility = cb.checked ? "visible" : "hidden"; });
+  btn.addEventListener("click", () => moveToCompleted(li, listId));
+}
+
+function moveToCompleted(li, listId) {
+  const text = li.querySelector('span').textContent;
+  const cul = document.getElementById(`completed-list${listId.slice(-1)}`);
+  const cli = document.createElement("li");
+  cli.innerHTML = `<div class="item-row"><span>${text}</span></div><button class="restore-btn">Restore</button> <button class="delete-btn">Delete</button>`;
+  setupCompletedEvents(cli, listId);
+  cul.appendChild(cli);
+  li.remove();
+  updateItemCount();
+}
+
+function setupCompletedEvents(li, listId) {
+  li.querySelector(".restore-btn").addEventListener("click", () => restoreToShoppingList(li, listId));
+  li.querySelector(".delete-btn").addEventListener("click", () => { li.remove(); updateItemCount(); });
+}
+
+function restoreToShoppingList(li, listId) {
+  const text = li.querySelector('span').textContent;
+  document.getElementById(listId).appendChild(createShoppingLi(text, false, listId));
+  li.remove();
+  updateItemCount();
+  saveAllListsToLocalStorage();
+}
+
+// --- Event Listeners ---
+window.addEventListener('DOMContentLoaded', () => {
   loadAllListsFromLocalStorage();
-  selectList.value = 'list1';
+  document.querySelector(".select-list select").value = 'list1';
   showSelectedList('list1');
+  updateItemCount();
 });
 
-selectList.addEventListener("change", function () {
+document.querySelector(".select-list select").addEventListener("change", function () {
   showSelectedList(this.value);
 });
 
-addItemButton.addEventListener("click", function () {
-  const itemText = itemInput.value.trim();
-  const selectedList = selectList.value;
-  if (itemText !== "") {
-    const ul = document.getElementById(selectedList);
-    if (ul) {
-      const li = document.createElement("li");
+document.querySelector(".add-item").addEventListener("click", addItem);
 
-      li.innerHTML = `<input type="checkbox" class="item-checkbox" /> ${itemText} <button class="complete-btn" style="visibility:hidden;">Complete</button>`;
-  li.innerHTML = `<div class="item-row"><input type="checkbox" class="item-checkbox" /><span>${itemText}</span></div><button class="complete-btn" style="visibility:hidden;">Complete</button>`;
-  ul.appendChild(li);
-      itemInput.value = "";
+document.getElementById("new-item").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") addItem();
+});
 
-      const checkbox = li.querySelector(".item-checkbox");
-      const completeBtn = li.querySelector(".complete-btn");
-      checkbox.addEventListener("change", function () {
-        if (checkbox.checked) {
-          completeBtn.style.visibility = "visible";
-        } else {
-          completeBtn.style.visibility = "hidden";
-        }
-      });
-      completeBtn.addEventListener("click", function () {
-        const completedLi = document.createElement("li");
-        completedLi.innerHTML = `<span>${itemText}</span> <button class="restore-btn">Restore</button> <button class="delete-btn">Delete</button>`;
-  completedLi.innerHTML = `<div class="item-row"><input type="checkbox" class="item-checkbox" disabled /><span>${itemText}</span></div><button class="restore-btn">Restore</button> <button class="delete-btn">Delete</button>`;
-  completedLi.innerHTML = `<div class=\"item-row\"><span>${itemText}</span></div><button class=\"restore-btn\">Restore</button> <button class=\"delete-btn\">Delete</button>`;
-  completedList.appendChild(completedLi);
-        li.remove();
-
-        const restoreBtn = completedLi.querySelector(".restore-btn");
-        if (restoreBtn) {
-          restoreBtn.addEventListener("click", function () {
-            // Add back to selected shopping list
-            const selectedListId = selectList.value;
-            const shoppingUl = document.getElementById(selectedListId);
-            if (shoppingUl) {
-              const newLi = document.createElement("li");
-              newLi.innerHTML = `<input type="checkbox" class="item-checkbox" /> ${itemText} <button class="complete-btn" style="visibility:hidden;">Complete</button>`;
-              newLi.innerHTML = `<div class="item-row"><input type="checkbox" class="item-checkbox" /><span>${itemText}</span></div><button class="complete-btn" style="visibility:hidden;">Complete</button>`;
-              shoppingUl.appendChild(newLi);
-
-              const checkbox = newLi.querySelector(".item-checkbox");
-              const completeBtn = newLi.querySelector(".complete-btn");
-              checkbox.addEventListener("change", function () {
-                completeBtn.style.visibility = checkbox.checked ? "visible" : "hidden";
-              });
-              completeBtn.addEventListener("click", function () {
-                // Recursively move to completed list
-                const completedLi = document.createElement("li");
-                completedLi.innerHTML = `<span>${itemText}</span> <button class="restore-btn">Restore</button> <button class="delete-btn">Delete</button>`;
-                completedLi.innerHTML = `<div class="item-row"><input type="checkbox" class="item-checkbox" disabled /><span>${itemText}</span></div><button class="restore-btn">Restore</button> <button class="delete-btn">Delete</button>`;
-                completedLi.innerHTML = `<div class=\"item-row\"><span>${itemText}</span></div><button class=\"restore-btn\">Restore</button> <button class=\"delete-btn\">Delete</button>`;
-                completedList.appendChild(completedLi);
-                newLi.remove();
-
-                const restoreBtn = completedLi.querySelector(".restore-btn");
-                if (restoreBtn) {
-                  restoreBtn.addEventListener("click", function () {
-                    const selectedListId = selectList.value;
-                    const shoppingUl = document.getElementById(selectedListId);
-                    if (shoppingUl) {
-                      const newLi = document.createElement("li");
-                      newLi.innerHTML = `<input type="checkbox" class="item-checkbox" /> ${itemText} <button class="complete-btn" style="visibility:hidden;">Complete</button>`;
-                      shoppingUl.appendChild(newLi);
-
-                      const checkbox = newLi.querySelector(".item-checkbox");
-                      const completeBtn = newLi.querySelector(".complete-btn");
-                      checkbox.addEventListener("change", function () {
-                        completeBtn.style.visibility = checkbox.checked ? "visible" : "hidden";
-                      });
-                      completeBtn.addEventListener("click", function () {
-                        // Recursively move to completed list
-                        const completedLi = document.createElement("li");
-                        completedLi.innerHTML = `<span>${itemText}</span> <button class="restore-btn">Restore</button> <button class="delete-btn">Delete</button>`;
-                        completedLi.innerHTML = `<div class="item-row"><input type="checkbox" class="item-checkbox" disabled /><span>${itemText}</span></div><button class="restore-btn">Restore</button> <button class="delete-btn">Delete</button>`;
-                        completedLi.innerHTML = `<div class=\"item-row\"><span>${itemText}</span></div><button class=\"restore-btn\">Restore</button> <button class=\"delete-btn\">Delete</button>`;
-                        completedList.appendChild(completedLi);
-                        newLi.remove();
-
-                        const restoreBtn = completedLi.querySelector(".restore-btn");
-                        if (restoreBtn) {
-                          restoreBtn.addEventListener("click", function () {
-                            const selectedListId = selectList.value;
-                            const shoppingUl = document.getElementById(selectedListId);
-                            if (shoppingUl) {
-                              const newLi = document.createElement("li");
-                              newLi.innerHTML = `<input type="checkbox" class="item-checkbox" /> ${itemText} <button class="complete-btn" style="visibility:hidden;">Complete</button>`;
-                              shoppingUl.appendChild(newLi);
-
-                              const checkbox = newLi.querySelector(".item-checkbox");
-                              const completeBtn = newLi.querySelector(".complete-btn");
-                              checkbox.addEventListener("change", function () {
-                                completeBtn.style.visibility = checkbox.checked ? "visible" : "hidden";
-                              });
-                              completeBtn.addEventListener("click", function () {
-                                // Recursively move to completed list
-                                const completedLi = document.createElement("li");
-                                completedLi.innerHTML = `<span>${itemText}</span> <button class="restore-btn">Restore</button> <button class="delete-btn">Delete</button>`;
-                                completedList.appendChild(completedLi);
-                                newLi.remove();
-                                // Add listeners again
-                                const restoreBtn = completedLi.querySelector(".restore-btn");
-                                if (restoreBtn) {
-                                  restoreBtn.addEventListener("click", function () {
-                                    // ...same logic as above...
-                                  });
-                                }
-                                const deleteBtn = completedLi.querySelector(".delete-btn");
-                                if (deleteBtn) {
-                                  deleteBtn.addEventListener("click", function () {
-                                    completedLi.remove();
-                                  });
-                                }
-                              });
-                            }
-                          });
-                        }
-                        const deleteBtn = completedLi.querySelector(".delete-btn");
-                        if (deleteBtn) {
-                          deleteBtn.addEventListener("click", function () {
-                            completedLi.remove();
-                          });
-                        }
-                      });
-                    }
-                  });
-                }
-                const deleteBtn = completedLi.querySelector(".delete-btn");
-                if (deleteBtn) {
-                  deleteBtn.addEventListener("click", function () {
-                    completedLi.remove();
-                  });
-                }
-              });
-            }
-            completedLi.remove();
-          });
-        }
-        const deleteBtn = completedLi.querySelector(".delete-btn");
-        if (deleteBtn) {
-          deleteBtn.addEventListener("click", function () {
-            completedLi.remove();
-          });
-        }
-      });
-    }
+document.querySelector(".remove-checked").addEventListener("click", function () {
+  const ul = document.querySelector('.shopping_list ul[style=""]');
+  if (ul) {
+    ul.querySelectorAll("li").forEach(li => {
+      if (li.querySelector(".item-checkbox").checked) li.remove();
+    });
+    updateItemCount();
+    saveAllListsToLocalStorage();
   }
 });
 
-const removeCheckedBtn = document.querySelector(".remove-checked");
-if (removeCheckedBtn) {
-  removeCheckedBtn.addEventListener("click", function () {
-    document.querySelectorAll(".shopping_list ul").forEach((ul) => {
-      ul.querySelectorAll("li").forEach((li) => {
-        const checkbox = li.querySelector(".item-checkbox");
-        if (checkbox && checkbox.checked) {
-          li.remove();
-        }
-      });
-    });
-  });
-}
-
-// Save lists after every change
-addItemButton.addEventListener("click", function () {
-  saveAllListsToLocalStorage();
+document.querySelector(".check-all").addEventListener('click', function() {
+  checkOrUncheckAll(true); saveAllListsToLocalStorage();
 });
 
-// Save after removing checked items
-if (removeCheckedBtn) {
-  removeCheckedBtn.addEventListener("click", function () {
-    saveAllListsToLocalStorage();
-  });
-}
+document.querySelector(".uncheck-all").addEventListener('click', function() {
+  checkOrUncheckAll(false); saveAllListsToLocalStorage();
+});
 
-// Save after checking/unchecking all
-if (checkAllBtn) {
-  checkAllBtn.addEventListener('click', function() {
-    saveAllListsToLocalStorage();
-  });
-}
-if (uncheckAllBtn) {
-  uncheckAllBtn.addEventListener('click', function() {
-    saveAllListsToLocalStorage();
-  });
-}
+document.querySelector('.delete-all').addEventListener('click', clearCompletedLists);
 
